@@ -360,21 +360,34 @@ def make_tensor(
 
     np_dtype = mapping.TENSOR_TYPE_TO_NP_TYPE[data_type]
 
-    # Check number of vals specified equals tensor size
-    expected_size = 1
-    if raw:
-        # NumPy doesn't have BFLOAT16. TENSOR_TYPE_TO_NP_TYPE maps it to float32,
-        # which has the wrong itemsize.
-        if data_type == TensorProto.BFLOAT16:
-            expected_size = 2
+    def _get_expected_size(data_type, dims) -> int:
+        numel = 1
+        for d in dims:
+            numel *= d
+        if raw:
+            if data_type == TensorProto.BBFP_1_8_8_16:
+                BOX_SIZE_BITS = 16 * (1 + 8) + 8
+                BOX_SIZE = BOX_SIZE_BITS / 8
+                nbox = (numel + (16 - 1)) // 16
+                return BOX_SIZE * nbox
+            else:
+                # NumPy doesn't have BFLOAT16. TENSOR_TYPE_TO_NP_TYPE maps it to float32,
+                # which has the wrong itemsize.
+                if data_type == TensorProto.BFLOAT16:
+                    item_size = 2
+                else:
+                    item_size = np_dtype.itemsize
+                return item_size * numel
         else:
-            expected_size = np_dtype.itemsize
+            return numel
+
+
+    # Check number of vals specified equals tensor size
+    expected_size = _get_expected_size(data_type, dims)
+
 
     if type(vals) is np.ndarray and len(vals.shape) > 1:
         vals = vals.flatten()
-    for d in dims:
-        expected_size *= d
-
     if len(vals) != expected_size:
         raise ValueError(
             "Number of values does not match tensor's size. Expected {}, but it is {}. ".format(
@@ -398,6 +411,8 @@ def make_tensor(
                     np.array(vals).astype(np_dtype).flatten().tolist(),
                 )
             )
+        elif data_type == TensorProto.BBFP_1_8_8_16:
+            assert False # not implemented yet
         field = mapping.STORAGE_TENSOR_TYPE_TO_FIELD[
             mapping.TENSOR_TYPE_TO_STORAGE_TENSOR_TYPE[data_type]
         ]

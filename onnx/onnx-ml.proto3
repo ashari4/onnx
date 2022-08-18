@@ -507,6 +507,9 @@ message TensorProto {
     // This format has 1 sign bit, 8 exponent bits, and 7 mantissa bits.
     BFLOAT16 = 16;
 
+    // This format has 1 sign bit, 8 shared exponent bits, and 8 mantissa bits, and 16 elements per bounding box.
+    BBFP_1_8_8_16 = 17;
+
     // Future extensions go here.
   }
 

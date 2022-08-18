@@ -24,6 +24,7 @@ TENSOR_TYPE_TO_NP_TYPE = {
     int(TensorProto.UINT32): np.dtype("uint32"),
     int(TensorProto.UINT64): np.dtype("uint64"),
     int(TensorProto.STRING): np.dtype("object"),
+    int(TensorProto.BBFP_1_8_8_16): np.dtype('float32')  # Native numpy does not support BBFP so now use float32 for bf16 values
 }
 
 # Currently native numpy does not support bfloat16 so TensorProto.BFLOAT16 is ignored for now

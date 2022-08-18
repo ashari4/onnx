@@ -5,6 +5,8 @@ import os
 import tempfile
 import unittest
 
+import numpy as np
+
 import onnx
 from onnx import (
     IR_VERSION,
@@ -31,6 +33,20 @@ class TestBasicFunctions(unittest.TestCase):
             data_type=TensorProto.FLOAT,
             dims=(2, 3, 4),
             vals=[x + 0.5 for x in range(24)],
+        )
+        return tensor
+
+    def _simple_tensor_bbfp(self) -> TensorProto:
+        # Create a TensorProto.
+        # each bounding box has size size of 19 bytes
+        # there are 3 bounding boxes for 48 elements
+        # so the byte size is 19 * 3 = 57
+        tensor = helper.make_tensor(
+            name='test-bbfp-tensor',
+            data_type=TensorProto.BBFP_1_8_8_16,
+            dims=(2, 3, 8),
+            vals=np.zeros(57).astype(np.uint8).tobytes(), # TODO: 0000 use actual data
+            raw=True
         )
         return tensor
 
